@@ -2,12 +2,15 @@ from discord.ext import commands
 import discord
 import os
 
+from cogs import *  # config_functions
+
 
 
 class Bot(commands.Bot):
-	def __init__(self, command_prefix: str, pass_contest: bool = False, intents = discord.Intents.default()):
+	def __init__(self, command_prefix: str, pass_contest: bool = False, intents = discord.Intents.default(), config: dict = None):
 		super().__init__(command_prefix=command_prefix, pass_contest=pass_contest, intents=intents)
-		self.cog_names = [cog.replace('.py', '') for cog in os.listdir("./Cogs") if cog.endswith(".py")]
+		self.config = config
+		self.cog_names = [cog.replace('.py', '') for cog in os.listdir("./Cogs") if cog.endswith(".py") and not cog.startswith("__")]
 
 
 	async def on_ready(self):
@@ -25,7 +28,27 @@ class Bot(commands.Bot):
 		print("\n")
 
 
+
+def get_config(config_folder: str) -> dict:
+	config = {}
+
+	token_file_name = os.path.join(config_folder, ".token")
+	if not os.path.exists(token_file_name): raise Exception("missing '.token' file")
+	with open(token_file_name, "rt") as token_file:
+		config.update({"token": token_file.read()})
+
+	for fn in config_functions:
+		config.update(fn(config_folder))
+
+	return config
+
+
+
 if __name__ == "__main__":
-	intents = discord.Intents.default()
-	bot = Bot(command_prefix = "/", pass_contest = True, intents=intents)
-	bot.run("MTA2NzU5NjgxNDA5MTU1MDc0MA.GZHTdq.fX56wghPSXcHtyS6Su7FTUvzwCUd_mMwc-zKCk")
+	root_dir =		os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+	config_dir =	os.path.join(root_dir, "config")
+	config =		get_config(config_dir)
+
+	intents =		discord.Intents.all()
+	bot =			Bot(command_prefix = ".", pass_contest = True, intents=intents, config=config)
+	bot.run(config["token"])
