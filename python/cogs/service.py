@@ -6,16 +6,9 @@ import os
 
 
 
-"""  // possible outputs
-active
-inactive
-activating
-deactivating
-failed
-
-(unknown (windows))
-"""
+# backend functions
 def get_service_status(service_name: str) -> str:
+	# returns: active, inactive, activating, deactivating, failed, unknown(windows)
 	if os.name in ["nt", "dos"]: return "unknown"
 	sysctl_status = subprocess.Popen(
 		[
@@ -37,10 +30,21 @@ def get_service_status(service_name: str) -> str:
 
 
 
-class stat(commands.Cog):
+# config function
+def get_config(config_folder: str) -> dict:
+	config_file_name = os.path.join(config_folder, "service.json")
+	if not os.path.exists(config_file_name): raise Exception("missing 'service.json' file")
+	with open(config_file_name, "r") as config_file:
+		config = json.load(config_file)
+	return {"service": config}
+
+
+
+# cog class
+class service(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.config = bot.config["stat"]
+		self.config = bot.config["service"]
 		self.uptime.start()
 
 	def cog_unload(self):
@@ -67,14 +71,6 @@ class stat(commands.Cog):
 
 
 
-def get_config(config_folder: str) -> dict:
-	config_file_name = os.path.join(config_folder, "stat.json")
-	if not os.path.exists(config_file_name): raise Exception("missing 'stat.json' file")
-	with open(config_file_name, "r") as config_file:
-		config = json.load(config_file)
-	return {"stat": config}
-
-
-
+# setup function
 async def setup(bot):
-	await bot.add_cog(stat(bot))
+	await bot.add_cog(service(bot))

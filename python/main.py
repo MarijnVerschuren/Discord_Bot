@@ -6,6 +6,7 @@ from cogs import *  # config_functions
 
 
 
+# bot class
 class Bot(commands.Bot):
 	def __init__(self, command_prefix: str, pass_contest: bool = False, intents = discord.Intents.default(), cog_dir: str = "./cogs", config: dict = None):
 		super().__init__(command_prefix=command_prefix, pass_contest=pass_contest, intents=intents)
@@ -30,6 +31,7 @@ class Bot(commands.Bot):
 
 
 
+# config function
 def get_config(config_folder: str) -> dict:
 	config = {}
 	token_file_name = os.path.join(config_folder, ".token")
@@ -42,6 +44,7 @@ def get_config(config_folder: str) -> dict:
 
 
 
+# entry point
 if __name__ == "__main__":
 	python_dir =	os.path.dirname(os.path.abspath(__file__))
 	root_dir =		os.path.dirname(python_dir)

@@ -1,9 +1,9 @@
-from .stat import get_config as get_stat_config
+from .service import get_config as get_service_config
 
 
 
 config_functions = [
-	get_stat_config
+	get_service_config
 ]
 
 
