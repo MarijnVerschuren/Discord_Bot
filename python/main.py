@@ -7,10 +7,11 @@ from cogs import *  # config_functions
 
 
 class Bot(commands.Bot):
-	def __init__(self, command_prefix: str, pass_contest: bool = False, intents = discord.Intents.default(), config: dict = None):
+	def __init__(self, command_prefix: str, pass_contest: bool = False, intents = discord.Intents.default(), cog_dir: str = "./cogs", config: dict = None):
 		super().__init__(command_prefix=command_prefix, pass_contest=pass_contest, intents=intents)
-		self.config = config
-		self.cog_names = [cog.replace('.py', '') for cog in os.listdir("./Cogs") if cog.endswith(".py") and not cog.startswith("__")]
+		self.config =		config
+		self.cog_dir =		cog_dir
+		self.cog_names =	[cog.replace('.py', '') for cog in os.listdir(cog_dir) if cog.endswith(".py") and not cog.startswith("__")]
 
 
 	async def on_ready(self):
@@ -31,24 +32,23 @@ class Bot(commands.Bot):
 
 def get_config(config_folder: str) -> dict:
 	config = {}
-
 	token_file_name = os.path.join(config_folder, ".token")
 	if not os.path.exists(token_file_name): raise Exception("missing '.token' file")
 	with open(token_file_name, "rt") as token_file:
 		config.update({"token": token_file.read()})
-
 	for fn in config_functions:
 		config.update(fn(config_folder))
-
 	return config
 
 
 
 if __name__ == "__main__":
-	root_dir =		os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+	python_dir =	os.path.dirname(os.path.abspath(__file__))
+	root_dir =		os.path.dirname(python_dir)
 	config_dir =	os.path.join(root_dir, "config")
+	cog_dir =		os.path.join(python_dir, "cogs")
 	config =		get_config(config_dir)
 
 	intents =		discord.Intents.all()
-	bot =			Bot(command_prefix = ".", pass_contest = True, intents=intents, config=config)
+	bot =			Bot(command_prefix = ".", pass_contest = True, intents=intents, cog_dir=cog_dir, config=config)
 	bot.run(config["token"])

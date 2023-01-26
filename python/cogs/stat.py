@@ -6,6 +6,37 @@ import os
 
 
 
+"""  // possible outputs
+active
+inactive
+activating
+deactivating
+failed
+
+(unknown (windows))
+"""
+def get_service_status(service_name: str) -> str:
+	if os.name in ["nt", "dos"]: return "unknown"
+	sysctl_status = subprocess.Popen(
+		[
+			"systemctl",
+			"status",
+			service_name
+		],
+		stdout=subprocess.PIPE
+	)
+	output = subprocess.check_output(
+		[
+			"grep",
+			"Active"
+		],
+		stdin=sysctl_status.stdout
+	).decode("utf-8")
+	sysctl_status.wait()
+	return output[output.find(":")+2 : output.find("(")-1]
+
+
+
 class stat(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
@@ -16,45 +47,24 @@ class stat(commands.Cog):
 		self.uptime.cancel()
 
 
-	@static_method
-	def get_service_activity(service_name: str) -> str:
-		sysctl_status = subprocess.Popen(
-			[
-				"systemctl",
-				"status",
-				service_name
-			],
-			stdout=subprocess.PIPE
-		)
-		output = subprocess.check_output(
-			[
-				"grep",
-				"Active"
-			],
-			stdin=sysctl_status.stdout
-		).decode("utf-8")
-		sysctl_status.wait()
-		return output[out.find(":")+2 : out.find("(")-1]
-
-
 	@tasks.loop(minutes=1)
 	async def uptime(self):
-		pass
-		"""
-		active
-		inactive
-		activating
-		deactivating
-		failed
-		"""
+		for service in self.config["service_names"]:
+			status = get_service_status(service)
+			if status in ["unknown", "active", "activating", "deactivating"]: continue
+			if status == "inactive":
+				pass # ask if it has to be activated
+			if status == "failed":
+				pass # send message and restart
 
 
 	@commands.command()
 	async def server_stat(self, ctx):#, *, member: discord.Member = None):
 		msg = "```\n"
 		for service in self.config["service_names"]:
-			msg += f"{service}: {self.get_service_activity(service)}\n"
+			msg += f"{service}: {get_service_status(service)}\n"
 		await ctx.send(msg + "```")
+
 
 
 def get_config(config_folder: str) -> dict:
