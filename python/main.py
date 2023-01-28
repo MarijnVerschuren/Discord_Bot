@@ -1,33 +1,9 @@
 from discord.ext import commands
 import discord
+import json
 import os
 
 from cogs import *  # config_functions
-
-
-
-# bot class
-class Bot(commands.Bot):
-	def __init__(self, command_prefix: str, pass_contest: bool = False, intents = discord.Intents.default(), cog_dir: str = "./cogs", config: dict = None):
-		super().__init__(command_prefix=command_prefix, pass_contest=pass_contest, intents=intents)
-		self.config =		config
-		self.cog_dir =		cog_dir
-		self.cog_names =	[cog.replace('.py', '') for cog in os.listdir(cog_dir) if cog.endswith(".py") and not cog.startswith("__")]
-
-
-	async def on_ready(self):
-		await self.change_presence(status=discord.Status.dnd, activity=discord.Streaming(name="6good9oof", url="https://www.youtube.com/watch?v=dQw4w9WgXcQ", type=1))
-		awaits = []
-		for cog in self.cog_names:
-			awaits.append(self.load_extension(f"cogs.{cog}"))
-		for promise in awaits: await promise
-		#print commands
-		os.system("cls" if os.name in ["nt", "dos"] else "clear")  # clear the terminal
-		print("commands:")
-		for cog in self.cog_names:
-			for cmd in bot.get_cog(cog).get_commands():
-				print(f"  - {cmd}")
-		print("\n")
 
 
 
@@ -35,23 +11,99 @@ class Bot(commands.Bot):
 def get_config(config_folder: str) -> dict:
 	config = {}
 	token_file_name = os.path.join(config_folder, ".token")
+	config_file_name = os.path.join(config_folder, "config.json")
 	if not os.path.exists(token_file_name): raise Exception("missing '.token' file")
 	with open(token_file_name, "rt") as token_file:
 		config.update({"token": token_file.read()})
+	with open(config_file_name, "r") as config_file:
+		config.update(json.load(config_file))
 	for fn in config_functions:
 		config.update(fn(config_folder))
 	return config
 
 
 
+# bot class
+class Bot(commands.Bot):
+	def __init__(self, command_prefix: str, pass_contest: bool = False, intents = discord.Intents.default(), config: dict = None):
+		super().__init__(command_prefix=command_prefix, pass_contest=pass_contest, intents=intents)
+		self.remove_command('help')
+		self.config =		config
+
+
+	def get_help_message(self) -> str:
+		misc_commands = self.commands
+		msg = f"prefix = '{self.command_prefix}'\n\n"
+		msg += "commands:\n"
+		for cog in self.config["cogs"]:
+			msg += f"  > {cog}\n"
+			for cmd in bot.get_cog(cog).get_commands():
+				if cmd in misc_commands: misc_commands.remove(cmd)
+				msg += f"    - {cmd}\n"
+		msg += f"  > misc\n"
+		for cmd in misc_commands:
+			msg += f"    - {cmd}\n"
+		return msg
+
+
+	async def create_channel(
+			self, guild, name: str,
+			category_name: str = None,
+			role_names: list = None,
+			member_names: list = None,
+			nick_names: list = None
+		):
+		overwrites = {
+			guild.default_role:	discord.PermissionOverwrite(read_messages=False),
+			guild.me:			discord.PermissionOverwrite(read_messages=True)
+		}
+		category = None
+		if role_names:		overwrites.update({role: 	discord.PermissionOverwrite(read_messages=True) for role	in guild.roles		if role.name	in role_names})
+		if member_names:	overwrites.update({member:	discord.PermissionOverwrite(read_messages=True) for member	in guild.members	if member.name	in member_names})
+		if nick_names:		overwrites.update({member:	discord.PermissionOverwrite(read_messages=True) for member	in guild.members	if member.nick	in nick_names})
+		if category_name:	category = [category for category in guild.categories if category.name == category_name][0]
+		await guild.create_text_channel(name, category=category, overwrites=overwrites)
+
+
+	async def on_ready(self):
+		await self.change_presence(status=discord.Status.dnd, activity=discord.Streaming(name="6good9oof", url="https://www.youtube.com/watch?v=dQw4w9WgXcQ", type=1))
+		awaits = []
+		for cog in self.config["cogs"]:
+			awaits.append(self.load_extension(f"cogs.{cog}"))
+		for promise in awaits: await promise
+
+		help_message = self.get_help_message()
+		os.system("cls" if os.name in ["nt", "dos"] else "clear")  # clear the terminal
+		print(help_message)
+
+		guild = bot.get_guild(self.config["guild_id"])
+		text_channel_names = [channel.name for channel in guild.text_channels]
+		chat_config = self.config["chat"]
+		if chat_config["name"] not in text_channel_names:
+			await self.create_channel(guild, chat_config["name"], category_name=chat_config["category"], role_names=["Admins"])
+		text_channel = [channel for channel in guild.text_channels if channel.name == chat_config["name"]][0]
+		await text_channel.send(f"```{help_message}```")
+
+
+
+# global variables
+python_dir =	os.path.dirname(os.path.abspath(__file__))
+root_dir =		os.path.dirname(python_dir)
+config_dir =	os.path.join(root_dir, "config")
+config =		get_config(config_dir)
+
+intents =		discord.Intents.all()
+bot =			Bot(command_prefix = ".", pass_contest = True, intents=intents, config=config)
+
+
+
+# help command
+@bot.command()
+async def help(ctx):
+	await ctx.send(f"```{bot.get_help_message()}```")
+
+
+
 # entry point
 if __name__ == "__main__":
-	python_dir =	os.path.dirname(os.path.abspath(__file__))
-	root_dir =		os.path.dirname(python_dir)
-	config_dir =	os.path.join(root_dir, "config")
-	cog_dir =		os.path.join(python_dir, "cogs")
-	config =		get_config(config_dir)
-
-	intents =		discord.Intents.all()
-	bot =			Bot(command_prefix = ".", pass_contest = True, intents=intents, cog_dir=cog_dir, config=config)
 	bot.run(config["token"])

@@ -1,5 +1,6 @@
 {
 	"service_names": [
-		"satisfactory.service"
+		"satisfactory.service",
+		"bluetooth.service"
 	]
 }
