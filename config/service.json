@@ -1,6 +1,9 @@
 {
 	"service_names": [
-		"satisfactory.service",
-		"bluetooth.service"
+		"satisfactory.service"
+	],
+	"authorized": [
+		426047213718994955,
+		919728432072507402
 	]
 }

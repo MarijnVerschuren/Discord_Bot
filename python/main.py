@@ -23,12 +23,21 @@ def get_config(config_folder: str) -> dict:
 
 
 
+# helper function class
+class helpers:
+	@staticmethod
+	def pad(msg: str, to: int) -> str:
+		padding = to - len(msg)
+		return f"{msg}{' ' * padding}"
+
+
 # bot class
 class Bot(commands.Bot):
 	def __init__(self, command_prefix: str, pass_contest: bool = False, intents = discord.Intents.default(), config: dict = None):
 		super().__init__(command_prefix=command_prefix, pass_contest=pass_contest, intents=intents)
 		self.remove_command('help')
 		self.config =		config
+		self.helpers =		helpers()
 
 
 	def get_help_message(self) -> str:
@@ -37,13 +46,16 @@ class Bot(commands.Bot):
 		msg += "commands:\n"
 		for cog in self.config["cogs"]:
 			msg += f"  > {cog}\n"
-			for cmd in bot.get_cog(cog).get_commands():
+			for cmd in self.get_cog(cog).get_commands():
 				if cmd in misc_commands: misc_commands.remove(cmd)
 				msg += f"    - {cmd}\n"
 		msg += f"  > misc\n"
 		for cmd in misc_commands:
 			msg += f"    - {cmd}\n"
 		return msg
+
+
+	def get_bot_channel(self): return [channel for channel in guild.text_channels if channel.name == chat_config["name"]][0]
 
 
 	async def create_channel(
@@ -76,13 +88,13 @@ class Bot(commands.Bot):
 		os.system("cls" if os.name in ["nt", "dos"] else "clear")  # clear the terminal
 		print(help_message)
 
-		guild = bot.get_guild(self.config["guild_id"])
+		guild = self.get_guild(self.config["guild_id"])
 		text_channel_names = [channel.name for channel in guild.text_channels]
 		chat_config = self.config["chat"]
 		if chat_config["name"] not in text_channel_names:
 			await self.create_channel(guild, chat_config["name"], category_name=chat_config["category"], role_names=["Admins"])
-		text_channel = [channel for channel in guild.text_channels if channel.name == chat_config["name"]][0]
-		await text_channel.send(f"```{help_message}```")
+		#text_channel = self.get_bot_channel()
+		#await text_channel.send(f"```{help_message}```")
 
 
 
@@ -101,6 +113,14 @@ bot =			Bot(command_prefix = ".", pass_contest = True, intents=intents, config=c
 @bot.command()
 async def help(ctx):
 	await ctx.send(f"```{bot.get_help_message()}```")
+
+
+@bot.command()
+async def user_list(ctx):
+	msg = ""
+	for member in ctx.guild.members:
+		msg += f"{pad(str(member), 32)}=> {member.id}\n"
+	await ctx.send(f"```{msg}```")
 
 
 
