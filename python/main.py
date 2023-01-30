@@ -8,8 +8,8 @@ from cogs import *  # config_functions
 
 
 # config function
-def get_config(config_folder: str) -> dict:
-	config = {}
+def get_config(config_folder: str, temp_dir: str) -> dict:
+	config = {"temp_dir": temp_dir}
 	token_file_name = os.path.join(config_folder, ".token")
 	config_file_name = os.path.join(config_folder, "config.json")
 	if not os.path.exists(token_file_name): raise Exception("missing '.token' file")
@@ -102,7 +102,8 @@ class Bot(commands.Bot):
 python_dir =	os.path.dirname(os.path.abspath(__file__))
 root_dir =		os.path.dirname(python_dir)
 config_dir =	os.path.join(root_dir, "config")
-config =		get_config(config_dir)
+temp_dir =		os.path.join(root_dir, "temp")
+config =		get_config(config_dir, temp_dir)
 
 intents =		discord.Intents.all()
 bot =			Bot(command_prefix = ".", pass_contest = True, intents=intents, config=config)
@@ -111,12 +112,12 @@ bot =			Bot(command_prefix = ".", pass_contest = True, intents=intents, config=c
 
 # help command
 @bot.command()
-async def help(ctx):
+async def help(ctx: commands.Context):
 	await ctx.send(f"```{bot.get_help_message()}```")
 
 
 @bot.command()
-async def user_list(ctx):
+async def user_list(ctx: commands.Context):
 	msg = ""
 	for member in ctx.guild.members:
 		msg += f"{pad(str(member), 32)}=> {member.id}\n"

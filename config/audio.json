@@ -1,0 +1,8 @@
+{
+	"wavelink_host": {
+		"host": "lavalink.oops.wtf",
+		"port": 443,
+		"password": "www.freelavalink.ga",
+		"https": true
+	}
+}

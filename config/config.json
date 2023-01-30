@@ -6,6 +6,7 @@
 	},
 	"cogs": [
 		"service",
-		"save"	
+		"save",
+		"audio"	
 	]
 }

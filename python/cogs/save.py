@@ -1,4 +1,5 @@
 from discord.ext import commands
+import subprocess
 import discord
 import json
 import time
@@ -18,24 +19,33 @@ def get_config(config_folder: str) -> dict:
 
 # cog class
 class save(commands.Cog):
-	def __init__(self, bot):
-		self.bot = bot
-		self.config = bot.config["save"]
+	def __init__(self, bot: commands.Bot):
+		self.bot =			bot
+		self.config =		bot.config["save"]
+		self.temp_file =	os.path.join(bot.config["temp_dir"], "save.zip")
 
 	@commands.command()
-	async def game_list(self, ctx):
+	async def game_list(self, ctx: commands.Context):
 		msg = "\n".join(self.config["save_folders"].keys())
 		await ctx.send(f"```{msg}```")
 
 	@commands.command()
-	async def get_save(self, ctx, game):
+	async def get_save(self, ctx: commands.Context, *, game):
 		if game not in self.config["save_folders"]: await ctx.send("```game not found```"); return
 		folder = self.config["save_folders"][game];
-		files = {time.ctime(os.stat(os.path.join(folder, filename))[8]): os.path.join(folder, filename) for filename in os.listdir(folder)}
-		await ctx.send(file=discord.File(files[min(files.keys())]))
+		#files = {time.ctime(os.stat(os.path.join(folder, filename))[8]): os.path.join(folder, filename) for filename in os.listdir(folder)}
+		subprocess.Popen(
+			[
+				"zip",
+				"-r",
+				self.temp_file,
+				folder
+			]
+		)
+		await ctx.send(file=discord.File(self.temp_file))
 
 
 
 # setup function
-async def setup(bot):
+async def setup(bot: commands.Bot):
 	await bot.add_cog(save(bot))
