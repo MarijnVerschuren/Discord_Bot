@@ -1,8 +1,11 @@
 {
-	"wavelink_host": {
-		"host": "lavalink.oops.wtf",
-		"port": 443,
-		"password": "www.freelavalink.ga",
-		"https": true
+	"wavelink": {
+		"host": "127.0.0.1",
+		"port": 2333,
+		"password": "Tafeltje11"
+	},
+	"spotify": {
+		"client_id": "42556c748b2c41c783b4c7b6cc77c86f",
+		"client_secret": null
 	}
 }

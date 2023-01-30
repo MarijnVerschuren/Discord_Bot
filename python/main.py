@@ -13,10 +13,10 @@ def get_config(config_folder: str, temp_dir: str) -> dict:
 	token_file_name = os.path.join(config_folder, ".token")
 	config_file_name = os.path.join(config_folder, "config.json")
 	if not os.path.exists(token_file_name): raise Exception("missing '.token' file")
-	with open(token_file_name, "rt") as token_file:
-		config.update({"token": token_file.read()})
 	with open(config_file_name, "r") as config_file:
 		config.update(json.load(config_file))
+	with open(token_file_name, "rt") as token_file:
+		config["token"] = token_file.read()
 	for fn in config_functions:
 		config.update(fn(config_folder))
 	return config
@@ -33,7 +33,7 @@ class helpers:
 
 # bot class
 class Bot(commands.Bot):
-	def __init__(self, command_prefix: str, pass_contest: bool = False, intents = discord.Intents.default(), config: dict = None):
+	def __init__(self, command_prefix: str, pass_contest: bool = False, intents = discord.Intents.default(), config: dict = None) -> None:
 		super().__init__(command_prefix=command_prefix, pass_contest=pass_contest, intents=intents)
 		self.remove_command('help')
 		self.config =		config
@@ -55,7 +55,7 @@ class Bot(commands.Bot):
 		return msg
 
 
-	def get_bot_channel(self): return [channel for channel in guild.text_channels if channel.name == chat_config["name"]][0]
+	def get_bot_channel(self) -> discord.TextChannel: return [channel for channel in guild.text_channels if channel.name == chat_config["name"]][0]
 
 
 	async def create_channel(
@@ -64,7 +64,7 @@ class Bot(commands.Bot):
 			role_names: list = None,
 			member_names: list = None,
 			nick_names: list = None
-		):
+		) -> None:
 		overwrites = {
 			guild.default_role:	discord.PermissionOverwrite(read_messages=False),
 			guild.me:			discord.PermissionOverwrite(read_messages=True)
@@ -74,10 +74,10 @@ class Bot(commands.Bot):
 		if member_names:	overwrites.update({member:	discord.PermissionOverwrite(read_messages=True) for member	in guild.members	if member.name	in member_names})
 		if nick_names:		overwrites.update({member:	discord.PermissionOverwrite(read_messages=True) for member	in guild.members	if member.nick	in nick_names})
 		if category_name:	category = [category for category in guild.categories if category.name == category_name][0]
-		await guild.create_text_channel(name, category=category, overwrites=overwrites)
+		return await guild.create_text_channel(name, category=category, overwrites=overwrites)
 
 
-	async def on_ready(self):
+	async def on_ready(self) -> None:
 		await self.change_presence(status=discord.Status.dnd, activity=discord.Streaming(name="6good9oof", url="https://www.youtube.com/watch?v=dQw4w9WgXcQ", type=1))
 		awaits = []
 		for cog in self.config["cogs"]:
@@ -93,8 +93,6 @@ class Bot(commands.Bot):
 		chat_config = self.config["chat"]
 		if chat_config["name"] not in text_channel_names:
 			await self.create_channel(guild, chat_config["name"], category_name=chat_config["category"], role_names=["Admins"])
-		#text_channel = self.get_bot_channel()
-		#await text_channel.send(f"```{help_message}```")
 
 
 
@@ -112,16 +110,16 @@ bot =			Bot(command_prefix = ".", pass_contest = True, intents=intents, config=c
 
 # help command
 @bot.command()
-async def help(ctx: commands.Context):
-	await ctx.send(f"```{bot.get_help_message()}```")
+async def help(ctx: commands.Context) -> None:
+	return await ctx.send(f"```{bot.get_help_message()}```")
 
 
 @bot.command()
-async def user_list(ctx: commands.Context):
+async def user_list(ctx: commands.Context) -> None:
 	msg = ""
 	for member in ctx.guild.members:
 		msg += f"{pad(str(member), 32)}=> {member.id}\n"
-	await ctx.send(f"```{msg}```")
+	return await ctx.send(f"```{msg}```")
 
 
 

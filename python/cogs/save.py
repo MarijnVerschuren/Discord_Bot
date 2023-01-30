@@ -19,18 +19,18 @@ def get_config(config_folder: str) -> dict:
 
 # cog class
 class save(commands.Cog):
-	def __init__(self, bot: commands.Bot):
+	def __init__(self, bot: commands.Bot) -> None:
 		self.bot =			bot
 		self.config =		bot.config["save"]
 		self.temp_file =	os.path.join(bot.config["temp_dir"], "save.zip")
 
 	@commands.command()
-	async def game_list(self, ctx: commands.Context):
+	async def game_list(self, ctx: commands.Context) -> None:
 		msg = "\n".join(self.config["save_folders"].keys())
-		await ctx.send(f"```{msg}```")
+		return await ctx.send(f"```{msg}```")
 
 	@commands.command()
-	async def get_save(self, ctx: commands.Context, *, game):
+	async def get_save(self, ctx: commands.Context, *, game) -> None:
 		if game not in self.config["save_folders"]: await ctx.send("```game not found```"); return
 		folder = self.config["save_folders"][game];
 		#files = {time.ctime(os.stat(os.path.join(folder, filename))[8]): os.path.join(folder, filename) for filename in os.listdir(folder)}
@@ -43,10 +43,10 @@ class save(commands.Cog):
 			]
 		)
 		proc.wait()
-		await ctx.send(file=discord.File(self.temp_file))
+		return await ctx.send(file=discord.File(self.temp_file))
 
 
 
 # setup function
-async def setup(bot: commands.Bot):
-	await bot.add_cog(save(bot))
+async def setup(bot: commands.Bot) -> None:
+	return await bot.add_cog(save(bot))

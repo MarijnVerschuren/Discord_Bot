@@ -127,4 +127,5 @@ dmypy.json
 
 # Bot configs
 config/.token
+config/.spotify_token
 temp/

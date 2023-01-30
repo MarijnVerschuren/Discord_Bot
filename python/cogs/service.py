@@ -62,14 +62,14 @@ def get_config(config_folder: str) -> dict:
 
 # cog class
 class service(commands.Cog):
-	def __init__(self, bot: commands.Bot):
+	def __init__(self, bot: commands.Bot) -> None:
 		self.bot =		bot
 		self.config =	bot.config["service"]
 		self.helpers =	bot.helpers
 		self.uptime.start()
 
 
-	def cog_unload(self):
+	def cog_unload(self) -> None:
 		self.uptime.cancel()
 
 
@@ -81,7 +81,7 @@ class service(commands.Cog):
 
 	# grouped service calls
 	@tasks.loop(minutes=1)
-	async def uptime(self):
+	async def uptime(self) -> None:
 		for service in self.config["service_names"]:
 			status = get_service_status(service)
 			if status in ["unknown", "active", "activating", "deactivating"]: continue
@@ -90,54 +90,54 @@ class service(commands.Cog):
 				await text_channel.send(f"```service: {service} is down```")
 
 	@commands.command()
-	async def server_stat(self, ctx: commands.Context):
+	async def server_stat(self, ctx: commands.Context) -> None:
 		if not self.authenticate(ctx): await ctx.send("```unauthorized```"); return
 		msg = ""
 		for service in self.config["service_names"]:
 			msg += f"{self.helpers.pad(service, 32)}{get_service_status(service)}\n"
-		await ctx.send(f"```{msg}```")
+		return await ctx.send(f"```{msg}```")
 
 
 	# specific service calls
 	@commands.command()
-	async def service_stat(self, ctx: commands.Context, *, service):
+	async def service_stat(self, ctx: commands.Context, *, service) -> None:
 		if not self.authenticate(ctx): await ctx.send("```unauthorized```"); return
-		await ctx.send(f"```{self.helpers.pad(service, 32)}{get_service_status(service)}```")
+		return await ctx.send(f"```{self.helpers.pad(service, 32)}{get_service_status(service)}```")
 	@commands.command()
-	async def start_service(self, ctx: commands.Context, *, service):
+	async def start_service(self, ctx: commands.Context, *, service) -> None:
 		if not self.authenticate(ctx): await ctx.send("```unauthorized```"); return
-		await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('start', service)}```")
+		return await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('start', service)}```")
 	@commands.command()
-	async def restart_service(self, ctx: commands.Context, *, service):
+	async def restart_service(self, ctx: commands.Context, *, service) -> None:
 		if not self.authenticate(ctx): await ctx.send("```unauthorized```"); return
-		await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('restart', service)}```")
+		return await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('restart', service)}```")
 	@commands.command()
-	async def reload_service(self, ctx: commands.Context, *, service):
+	async def reload_service(self, ctx: commands.Context, *, service) -> None:
 		if not self.authenticate(ctx): await ctx.send("```unauthorized```"); return
-		await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('reload', service)}```")
+		return await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('reload', service)}```")
 	@commands.command()
-	async def freeze_service(self, ctx: commands.Context, *, service):
+	async def freeze_service(self, ctx: commands.Context, *, service) -> None:
 		if not self.authenticate(ctx): await ctx.send("```unauthorized```"); return
-		await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('freeze', service)}```")
+		return await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('freeze', service)}```")
 	@commands.command()
-	async def unfreeze_service(self, ctx: commands.Context, *, service):
+	async def unfreeze_service(self, ctx: commands.Context, *, service) -> None:
 		if not self.authenticate(ctx): await ctx.send("```unauthorized```"); return
-		await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('thaw', service)}```")
+		return await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('thaw', service)}```")
 	@commands.command()
-	async def clean_service(self, ctx: commands.Context, *, service):
+	async def clean_service(self, ctx: commands.Context, *, service) -> None:
 		if not self.authenticate(ctx): await ctx.send("```unauthorized```"); return
-		await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('clean', service)}```")
+		return await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('clean', service)}```")
 	@commands.command()
-	async def stop_service(self, ctx: commands.Context, *, service):
+	async def stop_service(self, ctx: commands.Context, *, service) -> None:
 		if not self.authenticate(ctx): await ctx.send("```unauthorized```"); return
-		await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('stop', service)}```")
+		return await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('stop', service)}```")
 	@commands.command()
-	async def kill_service(self, ctx: commands.Context, *, service):
+	async def kill_service(self, ctx: commands.Context, *, service) -> None:
 		if not self.authenticate(ctx): await ctx.send("```unauthorized```"); return
-		await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('kill', service)}```")
+		return await ctx.send(f"```{self.helpers.pad(service, 32)}{service_call('kill', service)}```")
 
 
 
 # setup function
-async def setup(bot: commands.Bot):
-	await bot.add_cog(service(bot))
+async def setup(bot: commands.Bot) -> None:
+	return await bot.add_cog(service(bot))
