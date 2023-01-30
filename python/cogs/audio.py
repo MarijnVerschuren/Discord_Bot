@@ -43,7 +43,7 @@ class audio(commands.Cog):
 	async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.Track, reason) -> None:
 		ctx = player.ctx
 		vc = ctx.voice_client
-		if vc.loop: return await vc.play(track)
+		if hasattr(vc, "loop") and vc.loop: return await vc.play(track)
 		if vc.queue.is_empty: return
 		return await vc.play(vc.queue.get())
 
