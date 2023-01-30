@@ -34,7 +34,7 @@ class save(commands.Cog):
 		if game not in self.config["save_folders"]: await ctx.send("```game not found```"); return
 		folder = self.config["save_folders"][game];
 		#files = {time.ctime(os.stat(os.path.join(folder, filename))[8]): os.path.join(folder, filename) for filename in os.listdir(folder)}
-		subprocess.Popen(
+		proc = subprocess.Popen(
 			[
 				"zip",
 				"-r",
@@ -42,6 +42,7 @@ class save(commands.Cog):
 				folder
 			]
 		)
+		proc.wait()
 		await ctx.send(file=discord.File(self.temp_file))
 
 
