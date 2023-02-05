@@ -45,7 +45,7 @@ class save(commands.Cog):
 		proc.wait()
 		return await ctx.send(file=discord.File(self.temp_file))"""
 		for filename in os.listdir(folder):
-			await ctx.send(file=os.path.join(folder, filename))
+			await ctx.send(file=discord.File(os.path.join(folder, filename)))
 
 
 
